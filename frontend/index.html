@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Paymaster — Chain 151205</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a1a;
+      color: #e0e0ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      max-width: 480px;
+      width: 100%;
+      padding: 2rem;
+      background: #12122a;
+      border-radius: 16px;
+      border: 1px solid #2a2a5a;
+      box-shadow: 0 0 40px rgba(100,100,255,0.1);
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, #6c6cff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      text-align: center;
+      color: #8888aa;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: #1a1a3a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8888cc;
+      margin-bottom: 0.8rem;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.3rem 0;
+      font-size: 0.9rem;
+      font-family: monospace;
+    }
+    .info-row .label { color: #8888aa; }
+    .info-row .value { color: #c0c0ff; }
+    .status {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status.online { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    .status.offline { background: #f87171; }
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.5rem;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6c6cff, #8b5cf6);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(108,108,255,0.3); }
+    .btn-secondary {
+      background: #1a1a3a;
+      color: #a0a0cc;
+      border: 1px solid #2a2a4a;
+    }
+    .log {
+      background: #0a0a1a;
+      border-radius: 8px;
+      padding: 0.8rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      max-height: 180px;
+      overflow-y: auto;
+      color: #8888aa;
+    }
+    .accounts-list { max-height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; }
+    .account-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #1a1a30; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Nova Paymaster</h1>
+    <div class="subtitle">Chain ID 151205 — ERC-4337 — Sepolia Lab</div>
+    <div class="card">
+      <h3>Chain Status</h3>
+      <div class="info-row"><span class="label"><span class="status" id="chainStatus"></span>Chain ID</span><span class="value" id="chainId">—</span></div>
+      <div class="info-row"><span class="label">Block Number</span><span class="value" id="blockNum">—</span></div>
+      <div class="info-row"><span class="label">RPC</span><span class="value" id="rpcUrl">—</span></div>
+    </div>
+    <div class="card">
+      <h3>Contracts</h3>
+      <div class="info-row"><span class="label">NovaToken</span><span class="value" id="tokenAddr">—</span></div>
+      <div class="info-row"><span class="label">Paymaster</span><span class="value" id="paymasterAddr">—</span></div>
+    </div>
+    <button class="btn-primary" onclick="checkChain()">Check Chain</button>
+    <button class="btn-secondary" onclick="fetchAccounts()">Get Test Accounts</button>
+    <div class="card accounts-list" id="accountsList" style="display:none;">
+      <h3>Test Accounts</h3><div id="accountsContent"></div>
+    </div>
+    <div class="log" id="log"><div>Nova Paymaster ready</div></div>
+  </div>
+  <script>
+    const RPC = location.hostname === 'localhost' ? 'http://127.0.0.1:8545' : 'http://' + location.hostname + ':8545';
+    function log(msg,t) {
+      var e = document.createElement('div');
+      e.style.cssText = 'padding:2px 0;' + (t==='ok'?'color:#4ade80;':t==='err'?'color:#f87171;':'');
+      e.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+      document.getElementById('log').appendChild(e);
+    }
+    async function rpc(m,p) {
+      var r = await fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p||[],id:1})});
+      var d = await r.json();
+      if(d.error) throw new Error(d.error.message);
+      return d.result;
+    }
+    async function checkChain() {
+      try {
+        var c = await rpc('eth_chainId');
+        var id = parseInt(c,16);
+        document.getElementById('chainId').textContent = id;
+        document.getElementById('rpcUrl').textContent = RPC;
+        var b = await rpc('eth_blockNumber');
+        document.getElementById('blockNum').textContent = parseInt(b,16);
+        var s = document.getElementById('chainStatus');
+        s.className = 'status ' + (id===151205?'online':'online');
+        log('Connected chain ' + id + ' block #' + parseInt(b,16), 'ok');
+      } catch(e) {
+        document.getElementById('chainStatus').className = 'status offline';
+        log('Error: ' + e.message, 'err');
+      }
+    }
+    async function fetchAccounts() {
+      try {
+        var a = await rpc('eth_accounts');
+        var h = '';
+        for(var i=0;i<a.length;i++) h += '<div class="account-row"><span>#'+i+'</span><span>'+a[i].slice(0,10)+'...'+a[i].slice(-6)+'</span></div>';
+        document.getElementById('accountsContent').innerHTML = h;
+        document.getElementById('accountsList').style.display = 'block';
+        log(a.length + ' accounts found', 'ok');
+      } catch(e) { log('Error: ' + e.message, 'err'); }
+    }
+    window.onload = function() { log('Nova Paymaster - Chain 151205'); checkChain(); };
+  </script>
+</body>
+</html>

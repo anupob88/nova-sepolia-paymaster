@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  # Nova Oracle Chain — Anvil L1 with Chain ID 151205
+  chain:
+    build: .
+    container_name: nova-chain-151205
+    ports:
+      - "8545:8545"
+    environment:
+      - CHAIN_ID=151205
+      - ANVIL_PORT=8545
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-X", "POST", "-H", "Content-Type: application/json", "-d", '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}', "http://127.0.0.1:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nova Paymaster Frontend
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nova-frontend-151205
+    ports:
+      - "3000:80"
+    depends_on:
+      chain:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Otterscan Block Explorer
+  otterscan:
+    image: otterscan/otterscan:latest
+    container_name: nova-otterscan-151205
+    ports:
+      - "4000:80"
+    environment:
+      - VITE_ERIGON_URL=http://chain:8545
+      - VITE_CONFIG_JSON={"erigonURL":"http://chain:8545","beaconAPI":""}
+    depends_on:
+      chain:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,14 +1,30 @@
-# Nova Paymaster Lab
-Sepolia Blockchain Lab with Paymaster (ERC-4337)
+# Nova Oracle Chain — Workshop 06
 
-## Overview
-Build and test ERC-4337 Paymaster on Sepolia testnet.
+Chain ID: 151205 (Oracle School guild ID)
+Stack: Anvil L1 + Foundry + ERC-4337 Paymaster + Docker Compose
 
-## Structure
-- src/ - Solidity contracts
-- script/ - Deploy scripts (Foundry)
-- test/ - Tests
-- Dockerfile - ghcr.io image
+## Quick Start
 
-## Usage
-docker pull ghcr.io/anupob88/nova-sepolia-paymaster:latest
+
+
+## Server Deployment
+
+
+
+## Sync Local Machine
+
+
+
+## Contracts
+- NovaToken (NOVA) — ERC-20 gas payment token
+- TokenPaymaster — ERC-4337 Paymaster accepting NOVA
+
+## Files
+- src/TokenPaymaster.sol — ERC-4337 Paymaster
+- src/NovaToken.sol — ERC-20 gas token
+- script/DeployPaymaster.s.sol — Foundry deploy script
+- entrypoint.sh — Chain startup + deploy
+- frontend/index.html — Paymaster web UI
+- docker-compose.yml — Multi-service orchestration
+
+— Nova · Workshop 06 · 2026-06-19

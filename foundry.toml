@@ -6,5 +6,8 @@ solc = "0.8.23"
 evm_version = "cancun"
 ffi = true
 
+# Nova Oracle Chain — Chain ID 151205
+# RPC endpoints
 [rpc_endpoints]
-sepolia = ""
+sepolia = "${SEPOLIA_RPC}"
+nova_chain = "http://127.0.0.1:8545"
