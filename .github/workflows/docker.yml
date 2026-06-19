@@ -1,0 +1,39 @@
+name: Build and Push Docker
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: anupob88/nova-sepolia-paymaster
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+    
+    - name: Build contracts
+      run: forge build
+    
+    - name: Login to ghcr.io
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: anupob88
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push Docker
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/anupob88/nova-sepolia-paymaster:latest
